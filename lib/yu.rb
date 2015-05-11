@@ -12,23 +12,23 @@ module Yu
     def call
       program :name, 'yu'
       program :version, VERSION
-      program :description, 'TODO'
+      program :description, 'Helps you manage your microservices'
 
       command :test do |c|
         c.syntax = 'yu test'
-        c.description = 'Run container tests'
+        c.description = 'Run tests for service(s)'
         c.action(method(:test))
       end
 
       command :build do |c|
         c.syntax = 'yu build'
-        c.description = 'Build container(s)'
+        c.description = 'Build image for service(s)'
         c.action(method(:build))
       end
 
       command :shell do |c|
         c.syntax = 'yu shell'
-        c.description = 'Start a shell container'
+        c.description = 'Start a shell container for a service'
         c.option '--test'
         c.action(method(:shell))
       end
@@ -51,7 +51,6 @@ module Yu
         info "Running tests for #{container}..."
         run_command(
           "docker-compose run --rm #{container} bin/test",
-          showing_output: true,
           exit_on_failure: false,
         )
       end
@@ -88,24 +87,7 @@ module Yu
       end
     end
 
-    def package_gems_for_container(container)
-      info "Packaging gems for #{container}"
-      run_command("cd #{container} && bundle package --all", showing_output: true)
-    end
-
-    def gemfiled_containers
-      containers_with_file("Gemfile")
-    end
-
-    def testable_containers
-      containers_with_file("bin/test")
-    end
-
-    def normalise_container_name_from_dir(container_name_or_dir)
-      File.basename(container_name_or_dir)
-    end
-
-    def run_command(command, showing_output: false, exit_on_failure: true)
+    def run_command(command, showing_output: true, exit_on_failure: true)
       unless showing_output || verbose_mode?
         command = "#{command} &>/dev/null"
       end
@@ -128,21 +110,38 @@ module Yu
       end
     end
 
+    def package_gems_for_container(container)
+      info "Packaging gems for #{container}"
+      run_command("cd #{container} && bundle package --all")
+    end
+
+    def gemfiled_containers
+      containers_with_file("Gemfile")
+    end
+
+    def testable_containers
+      containers_with_file("bin/test")
+    end
+
+    def normalise_container_name_from_dir(container_name_or_dir)
+      File.basename(container_name_or_dir)
+    end
+
     def containers_with_file(file)
       Dir.glob("**/#{file}").map { |dir_path| dir_path.split("/").first }
     end
 
-    def verbose_mode?
-      !!$verbose_mode
+    def execute_command(command)
+      info "Executing: #{command}" if verbose_mode?
+      exec(command)
     end
 
     def info(message)
       say "[yu] #{message}"
     end
 
-    def execute_command(command)
-      info "Executing: #{command}" if verbose_mode?
-      exec(command)
+    def verbose_mode?
+      !!$verbose_mode
     end
   end
 end
