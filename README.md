@@ -1,28 +1,32 @@
 # Yu
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/yu`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+A microservice framework based on docker-compose
 
 ## Installation
 
-Add this line to your application's Gemfile:
+Install the CLI:
 
-```ruby
-gem 'yu'
+```bash
+$ gem install yu
 ```
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install yu
 
 ## Usage
 
-TODO: Write usage instructions here
+```bash
+yu --help
+# Run all tests
+yu test
+# Test specific service(s)
+yu test api
+# Get a bash shell for a service
+yu shell web
+# Get a bash shell for testing a service
+yu shell —test api
+# Build base images for all services
+yu build
+# Build base image for specific service(s)
+yu build api web
+```
 
 ## Development
 
