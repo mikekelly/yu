@@ -39,6 +39,12 @@ module Yu
         c.action(method(:reset))
       end
 
+      command :doctor do |c|
+        c.syntax = 'yu doctor'
+        c.description = 'Check your environment is ready to yu'
+        c.action(method(:doctor))
+      end
+
       global_option('-V', '--verbose', 'Verbose output') { $verbose_mode = true }
 
       run!
@@ -108,6 +114,22 @@ module Yu
       end
       info "Bringing all containers up"
       run_command "docker-compose up -d --no-recreate"
+    end
+
+    def doctor(args, options)
+      run_command "docker", showing_output: false do
+        info "Please ensure you have docker working"
+        exit 1
+      end
+      run_command "docker-compose --version", showing_output: false do
+        info "Please ensure you have docker-compose working"
+        exit 1
+      end
+      run_command "docker-compose ps", showing_output: false do
+        info "Your current directory does not contain a docker-compose.yml"
+        exit 1
+      end
+      info "Everything looks good."
     end
 
     def run_command(command, showing_output: true, exit_on_failure: true)

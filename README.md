@@ -14,6 +14,10 @@ $ gem install yu
 
 ```bash
 yu --help
+# Check your system is ready to use yu
+yu doctor
+# Reset everything
+yu reset
 # Run all tests
 yu test
 # Test specific service(s)
@@ -26,8 +30,6 @@ yu shell --test api
 yu build
 # Build base image for specific service(s)
 yu build api web
-# Reset everything
-yu reset
 ```
 
 ## Development
