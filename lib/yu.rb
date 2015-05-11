@@ -1,6 +1,5 @@
 require 'yu/version'
 require 'commander'
-require 'open3'
 
 module Yu
   class CLI
@@ -69,7 +68,8 @@ module Yu
       end
 
       target_gemfiled_containers.each(&method(:package_gems_for_container))
-      exec("docker-compose build #{target_containers.join(" ")}")
+      info "Building images..."
+      execute_command("docker-compose build #{target_containers.join(" ")}")
     end
 
     def shell(args, options)
@@ -80,7 +80,8 @@ module Yu
       when 1
         target_container = normalise_container_name_from_dir(args.first)
         env_option = options.test ? "-e APP_ENV=test" : ""
-        exec("docker-compose run --rm #{env_option} #{target_container} bash")
+        info "Loading #{"test" if options.test} shell for #{target_container}..."
+        execute_command("docker-compose run --rm #{env_option} #{target_container} bash")
       else
         info "One at a time please!"
         exit 1
@@ -105,14 +106,15 @@ module Yu
     end
 
     def run_command(command, showing_output: false, exit_on_failure: true)
-      info "Running command: #{command}" if verbose_mode?
-      _, out_and_err, wait_thread = Open3.popen2e(command)
-      while line = out_and_err.gets
-        puts line if showing_output || verbose_mode?
+      unless showing_output || verbose_mode?
+        command = "#{command} &>/dev/null"
       end
 
-      wait_thread.value.tap do |terminated_process|
-        unless terminated_process.success?
+      pid = fork { execute_command(command) }
+      _, process = Process.waitpid2(pid)
+
+      process.tap do |result|
+        unless result.success?
           if block_given?
             yield
           else
@@ -136,6 +138,11 @@ module Yu
 
     def info(message)
       say "[yu] #{message}"
+    end
+
+    def execute_command(command)
+      info "Executing: #{command}" if verbose_mode?
+      exec(command)
     end
   end
 end
