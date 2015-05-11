@@ -34,6 +34,8 @@ module Yu
         c.action(method(:shell))
       end
 
+      global_option('-V', '--verbose', 'Verbose output') { $verbose_mode = true }
+
       run!
     end
 
@@ -51,7 +53,7 @@ module Yu
         run_command(
           "docker-compose run --rm #{container} bin/test",
           showing_output: true,
-          exit_on_failure: false
+          exit_on_failure: false,
         )
       end
 
@@ -104,11 +106,13 @@ module Yu
 
     def run_command(command, showing_output: false, exit_on_failure: true)
       info "Running command: #{command}" if verbose_mode?
-      output = `#{command} 2>&1`
-      puts output if showing_output || verbose_mode?
+      _, out_and_err, wait_thread = Open3.popen2e(command)
+      while line = out_and_err.gets
+        puts line if showing_output || verbose_mode?
+      end
 
-      $?.tap do |result|
-        unless result.success?
+      wait_thread.value.tap do |terminated_process|
+        unless terminated_process.success?
           if block_given?
             yield
           else
@@ -127,7 +131,7 @@ module Yu
     end
 
     def verbose_mode?
-      true
+      !!$verbose_mode
     end
 
     def info(message)
