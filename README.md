@@ -21,11 +21,13 @@ yu test api
 # Get a bash shell for a service
 yu shell web
 # Get a bash shell for testing a service
-yu shell —test api
+yu shell --test api
 # Build base images for all services
 yu build
 # Build base image for specific service(s)
 yu build api web
+# Reset everything
+yu reset
 ```
 
 ## Development

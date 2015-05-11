@@ -33,6 +33,12 @@ module Yu
         c.action(method(:shell))
       end
 
+      command :reset do |c|
+        c.syntax = 'yu reset'
+        c.description = 'Reset everything'
+        c.action(method(:reset))
+      end
+
       global_option('-V', '--verbose', 'Verbose output') { $verbose_mode = true }
 
       run!
@@ -87,6 +93,23 @@ module Yu
       end
     end
 
+    def reset(args, options)
+      info "Packaging gems in all services containing a Gemfile"
+      gemfiled_containers.each(&method(:package_gems_for_container))
+      info "Killing any running containers"
+      run_command("docker-compose kill")
+      info "Removing all existing containers"
+      run_command "docker-compose rm --force"
+      info "Building fresh images"
+      run_command "docker-compose build"
+      if File.exists? 'seed'
+        info "Seeding system state"
+        run_command "./seed"
+      end
+      info "Bringing all containers up"
+      run_command "docker-compose up -d --no-recreate"
+    end
+
     def run_command(command, showing_output: true, exit_on_failure: true)
       unless showing_output || verbose_mode?
         command = "#{command} &>/dev/null"
@@ -128,7 +151,7 @@ module Yu
     end
 
     def containers_with_file(file)
-      Dir.glob("**/#{file}").map { |dir_path| dir_path.split("/").first }
+      Dir.glob("*/#{file}").map { |dir_path| dir_path.split("/").first }
     end
 
     def execute_command(command)
