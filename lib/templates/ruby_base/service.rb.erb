@@ -1,0 +1,12 @@
+class Service
+  def self.start(*args)
+    new(*args).start
+  end
+
+  def start
+    STDERR.puts "Starting <%= service_name %>..."
+    while true
+      # loop forever
+    end
+  end
+end

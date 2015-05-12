@@ -1,3 +1,7 @@
+require 'pathname'
+require 'erb'
+require 'ostruct'
+
 require 'yu/version'
 require 'commander'
 
@@ -62,6 +66,12 @@ module Yu
         c.syntax = 'yu recreate'
         c.description = 'Recreate containers for service(s)'
         c.action(method(:recreate))
+      end
+
+      command :service do |c|
+        c.syntax = 'yu service'
+        c.description = 'Create service from template'
+        c.action(method(:service))
       end
 
       global_option('-V', '--verbose', 'Verbose output') { $verbose_mode = true }
@@ -162,6 +172,54 @@ module Yu
       run_command "docker-compose kill #{service_list}"
       run_command "docker-compose rm --force #{service_list}"
       run_command "docker-compose up -d #{service_list}"
+    end
+
+    def service(args, options)
+      service_names = args.map(&method(:normalise_service_name_from_dir))
+      existing_services = get_existing_services(service_names)
+      if existing_services.any?
+        info "The following services already exist in the project: #{existing_services.join(', ')}"
+      else
+        service_names.each do |service_name|
+          copy_template_into_dir(service_name: service_name)
+          render_and_remove_erb_files(service_name: service_name)
+          append_partial_to_docker_compose_yml(service_name)
+        end
+      end
+    end
+
+    def get_existing_services(service_names)
+      service_names.select { |service_name| Pathname(service_name).exist? }
+    end
+
+    def copy_template_into_dir(service_name:)
+      run_command("cp -aR #{template_dir} #{service_name}")
+    end
+
+    def render_and_remove_erb_files(options)
+      service_name = options.fetch(:service_name)
+      template_context = OpenStruct.new(options).instance_eval { binding }
+
+      Dir.glob("#{service_name}/**/{*,.*}.erb").each do |erb_file_path|
+        template_string = File.read(erb_file_path)
+        template = ERB.new(template_string)
+        rendered_content = template.result(template_context)
+        target_file_path = erb_file_path.match(/(.*)\.erb$/)[1]
+
+        File.write(target_file_path, rendered_content)
+        run_command "rm #{erb_file_path}"
+      end
+    end
+
+    def append_partial_to_docker_compose_yml(service_name)
+      partial_path = "#{service_name}/_docker-compose.yml"
+      run_command "cat #{partial_path} >> docker-compose.yml"
+      run_command "rm #{partial_path}"
+    end
+
+    def template_dir
+      relative_path = Pathname(__FILE__).dirname + "templates/ruby_base"
+      relative_path.realpath
     end
 
     def run_command(command, showing_output: true, exit_on_failure: true)

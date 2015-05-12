@@ -1,0 +1,6 @@
+<%= service_name %>:
+  build: <%= service_name %>
+  volumes:
+    - <%= service_name %>:/app
+  env_file: <%= service_name %>/.env
+  command: bin/run

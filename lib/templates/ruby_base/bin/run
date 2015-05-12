@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+
+require 'bundler/setup'
+require_relative '../config/env'
+
+require 'service'
+
+Service.start
