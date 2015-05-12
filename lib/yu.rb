@@ -54,15 +54,15 @@ module Yu
 
     def test(args, options)
       if args.none?
-        target_containers = testable_containers
+        target_services = testable_services
       else
-        target_containers = args.map(&method(:normalise_container_name_from_dir))
+        target_services = args.map(&method(:normalise_service_name_from_dir))
       end
 
-      results = target_containers.map do |container|
-        info "Running tests for #{container}..."
+      results = target_services.map do |service|
+        info "Running tests for #{service}..."
         run_command(
-          "docker-compose run --rm #{container} bin/test",
+          "docker-compose run --rm #{service} bin/test",
           exit_on_failure: false,
         )
       end
@@ -71,28 +71,28 @@ module Yu
     end
 
     def build(args, options)
-      target_containers = args.map(&method(:normalise_container_name_from_dir))
-      if target_containers.none?
-        target_gemfiled_containers = gemfiled_containers
+      target_services = args.map(&method(:normalise_service_name_from_dir))
+      if target_services.none?
+        target_gemfiled_services = gemfiled_services
       else
-        target_gemfiled_containers = gemfiled_containers & target_containers
+        target_gemfiled_services = gemfiled_services & target_services
       end
 
-      target_gemfiled_containers.each(&method(:package_gems_for_container))
+      target_gemfiled_services.each(&method(:package_gems_for_service))
       info "Building images..."
-      execute_command("docker-compose build #{target_containers.join(" ")}")
+      execute_command("docker-compose build #{target_services.join(" ")}")
     end
 
     def shell(args, options)
       case args.count
       when 0
-        info "Please provide container"
+        info "Please provide service"
         exit 1
       when 1
-        target_container = normalise_container_name_from_dir(args.first)
+        target_service = normalise_service_name_from_dir(args.first)
         env_option = options.test ? "-e APP_ENV=test" : ""
-        info "Loading #{"test" if options.test} shell for #{target_container}..."
-        execute_command("docker-compose run --rm #{env_option} #{target_container} bash")
+        info "Loading #{"test" if options.test} shell for #{target_service}..."
+        execute_command("docker-compose run --rm #{env_option} #{target_service} bash")
       else
         info "One at a time please!"
         exit 1
@@ -101,7 +101,7 @@ module Yu
 
     def reset(args, options)
       info "Packaging gems in all services containing a Gemfile"
-      gemfiled_containers.each(&method(:package_gems_for_container))
+      gemfiled_services.each(&method(:package_gems_for_service))
       info "Killing any running containers"
       run_command("docker-compose kill")
       info "Removing all existing containers"
@@ -112,7 +112,7 @@ module Yu
         info "Seeding system state"
         run_command "./seed"
       end
-      info "Bringing all containers up"
+      info "Bringing containers up for all services"
       run_command "docker-compose up -d --no-recreate"
     end
 
@@ -155,24 +155,24 @@ module Yu
       end
     end
 
-    def package_gems_for_container(container)
-      info "Packaging gems for #{container}"
-      run_command("cd #{container} && bundle package --all")
+    def package_gems_for_service(service)
+      info "Packaging gems for #{service}"
+      run_command("cd #{service} && bundle package --all")
     end
 
-    def gemfiled_containers
-      containers_with_file("Gemfile")
+    def gemfiled_services
+      services_with_file("Gemfile")
     end
 
-    def testable_containers
-      containers_with_file("bin/test")
+    def testable_services
+      services_with_file("bin/test")
     end
 
-    def normalise_container_name_from_dir(container_name_or_dir)
-      File.basename(container_name_or_dir)
+    def normalise_service_name_from_dir(service_name_or_dir)
+      File.basename(service_name_or_dir)
     end
 
-    def containers_with_file(file)
+    def services_with_file(file)
       Dir.glob("*/#{file}").map { |dir_path| dir_path.split("/").first }
     end
 
