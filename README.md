@@ -10,6 +10,21 @@ Install the CLI:
 $ gem install yu
 ```
 
+## Get started
+```bash
+$ mkdir -p new_system && cd new_system
+$ yu service web api worker1
+$ yu build
+$ yu start
+```
+
+You can then see your running containers here:
+
+```bash
+$ docker-compose ps
+$ docker-compose logs
+```
+
 ## Usage
 
 ```bash
