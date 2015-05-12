@@ -30,6 +30,10 @@ yu shell --test api
 yu build
 # Build base image for specific service(s)
 yu build api web
+# Restart all containers
+yu restart
+# Restart speciic container(s)
+yu restart web
 ```
 
 ## Development

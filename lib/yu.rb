@@ -45,6 +45,12 @@ module Yu
         c.action(method(:doctor))
       end
 
+      command :restart do |c|
+        c.syntax = 'yu restart'
+        c.description = 'Restart containers'
+        c.action(method(:restart))
+      end
+
       global_option('-V', '--verbose', 'Verbose output') { $verbose_mode = true }
 
       run!
@@ -130,6 +136,12 @@ module Yu
         exit 1
       end
       info "Everything looks good."
+    end
+
+    def restart(args, options)
+      service_list = args.map(&method(:normalise_service_name_from_dir)).join(" ")
+      run_command "docker-compose kill #{service_list}"
+      run_command "docker-compose start #{service_list}"
     end
 
     def run_command(command, showing_output: true, exit_on_failure: true)
