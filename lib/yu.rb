@@ -35,7 +35,8 @@ module Yu
 
       command :reset do |c|
         c.syntax = 'yu reset'
-        c.description = 'Reset everything'
+        c.description = 'Fresh build of images for all services and restart'
+        c.option '--without-cache'
         c.action(method(:reset))
       end
 
@@ -113,7 +114,7 @@ module Yu
       info "Removing all existing containers"
       run_command "docker-compose rm --force"
       info "Building fresh images"
-      run_command "docker-compose build"
+      run_command "docker-compose build #{'--no-cache' if options.without_cache}"
       if File.exists? 'seed'
         info "Seeding system state"
         run_command "./seed"
