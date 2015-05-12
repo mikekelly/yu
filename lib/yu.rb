@@ -168,6 +168,7 @@ module Yu
     end
 
     def recreate(args, options)
+      # TODO: check all services have vendor/cache
       service_list = args.map(&method(:normalise_service_name_from_dir)).join(" ")
       run_command "docker-compose kill #{service_list}"
       run_command "docker-compose rm --force #{service_list}"
@@ -181,6 +182,7 @@ module Yu
         info "The following services already exist in the project: #{existing_services.join(', ')}"
       else
         service_names.each do |service_name|
+          info "Generating service scaffold for #{service_name}..."
           copy_template_into_dir(service_name: service_name)
           render_and_remove_erb_files(service_name: service_name)
           append_partial_to_docker_compose_yml(service_name)

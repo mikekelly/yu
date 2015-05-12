@@ -32,8 +32,12 @@ yu build
 yu build api web
 # Restart all containers
 yu restart
-# Restart speciic container(s)
+# Restart specific container(s)
 yu restart web
+# Recreate container for service(s)
+yu recreate api web
+# Generate scaffold for new service(s)
+yu service worker1
 ```
 
 ## Development
