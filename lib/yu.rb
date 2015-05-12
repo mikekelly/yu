@@ -48,8 +48,20 @@ module Yu
 
       command :restart do |c|
         c.syntax = 'yu restart'
-        c.description = 'Restart containers'
+        c.description = 'Restart containers for service(s)'
         c.action(method(:restart))
+      end
+
+      command :start do |c|
+        c.syntax = 'yu start'
+        c.description = 'Start containers containers for service(s)'
+        c.action(method(:restart))
+      end
+
+      command :recreate do |c|
+        c.syntax = 'yu recreate'
+        c.description = 'Recreate containers for service(s)'
+        c.action(method(:recreate))
       end
 
       global_option('-V', '--verbose', 'Verbose output') { $verbose_mode = true }
@@ -142,7 +154,14 @@ module Yu
     def restart(args, options)
       service_list = args.map(&method(:normalise_service_name_from_dir)).join(" ")
       run_command "docker-compose kill #{service_list}"
-      run_command "docker-compose start #{service_list}"
+      run_command "docker-compose up -d --no-recreate #{service_list}"
+    end
+
+    def recreate(args, options)
+      service_list = args.map(&method(:normalise_service_name_from_dir)).join(" ")
+      run_command "docker-compose kill #{service_list}"
+      run_command "docker-compose rm --force #{service_list}"
+      run_command "docker-compose up -d #{service_list}"
     end
 
     def run_command(command, showing_output: true, exit_on_failure: true)
