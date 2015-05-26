@@ -77,6 +77,7 @@ module Yu
       command :run do |c|
         c.syntax = 'yu run'
         c.description = 'Create a temp container to run a command'
+        c.option '--test'
         c.action(method(:run))
       end
 
@@ -186,7 +187,8 @@ module Yu
 
     def run(args, options)
       command = args.join(" ")
-      execute_command "docker-compose run --rm #{command}"
+      env_option = options.test ? "-e APP_ENV=test" : ""
+      execute_command "docker-compose run --rm #{env_option} #{command}"
     end
 
     def service(args, options)
