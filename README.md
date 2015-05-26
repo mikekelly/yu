@@ -1,6 +1,6 @@
 # Yu
 
-A microservice framework based on docker-compose
+A container framework based on docker-compose
 
 ## Installation
 

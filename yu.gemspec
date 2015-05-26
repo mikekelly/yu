@@ -9,8 +9,8 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Mike Kelly"]
   spec.email         = ["mikekelly321@gmail.com"]
 
-  spec.summary       = %q{a short summary, because Rubygems requires one.}
-  spec.description   = %q{a longer description or delete this line.}
+  spec.summary       = %q{A simple docker container framework}
+  spec.description   = %q{Framework for managing docker containers based on docker-compose}
   spec.homepage      = "https://github.com/mikekellly/yu"
   spec.license       = "MIT"
 

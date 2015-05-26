@@ -16,7 +16,7 @@ module Yu
     def call
       program :name, 'yu'
       program :version, VERSION
-      program :description, 'Helps you manage your microservices'
+      program :description, 'A container framework based on docker-compose'
 
       command :test do |c|
         c.syntax = 'yu test'
