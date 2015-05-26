@@ -59,7 +59,7 @@ module Yu
       command :start do |c|
         c.syntax = 'yu start'
         c.description = 'Start containers containers for service(s)'
-        c.action(method(:restart))
+        c.action(method(:start))
       end
 
       command :recreate do |c|
@@ -72,6 +72,12 @@ module Yu
         c.syntax = 'yu service'
         c.description = 'Create service from template'
         c.action(method(:service))
+      end
+
+      command :run do |c|
+        c.syntax = 'yu run'
+        c.description = 'Create a temp container to run a command'
+        c.action(method(:run))
       end
 
       global_option('-V', '--verbose', 'Verbose output') { $verbose_mode = true }
@@ -137,10 +143,7 @@ module Yu
       run_command "docker-compose rm --force"
       info "Building fresh images"
       run_command "docker-compose build #{'--no-cache' if options.without_cache}"
-      if File.exists? 'seed'
-        info "Seeding system state"
-        run_command "./seed"
-      end
+      run_seed
       info "Bringing containers up for all services"
       run_command "docker-compose up -d --no-recreate"
     end
@@ -161,6 +164,11 @@ module Yu
       info "Everything looks good."
     end
 
+    def start(args, options)
+      service_list = args.map(&method(:normalise_service_name_from_dir)).join(" ")
+      run_command "docker-compose up -d --no-recreate #{service_list}"
+    end
+
     def restart(args, options)
       service_list = args.map(&method(:normalise_service_name_from_dir)).join(" ")
       run_command "docker-compose kill #{service_list}"
@@ -173,6 +181,12 @@ module Yu
       run_command "docker-compose kill #{service_list}"
       run_command "docker-compose rm --force #{service_list}"
       run_command "docker-compose up -d #{service_list}"
+      run_seed
+    end
+
+    def run(args, options)
+      command = args.join(" ")
+      execute_command "docker-compose run --rm #{command}"
     end
 
     def service(args, options)
@@ -187,6 +201,13 @@ module Yu
           render_and_remove_erb_files(service_name: service_name)
           append_partial_to_docker_compose_yml(service_name)
         end
+      end
+    end
+
+    def run_seed
+      if File.exists? 'seed'
+        info "Seeding system state"
+        run_command "./seed"
       end
     end
 
