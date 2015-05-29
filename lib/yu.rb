@@ -181,8 +181,8 @@ module Yu
       service_list = args.map(&method(:normalise_service_name_from_dir)).join(" ")
       run_command "docker-compose kill #{service_list}"
       run_command "docker-compose rm --force #{service_list}"
-      run_command "docker-compose up -d #{service_list}"
       run_seed
+      run_command "docker-compose up -d --no-recreate #{service_list}"
     end
 
     def run(args, options)
