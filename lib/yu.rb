@@ -18,6 +18,8 @@ module Yu
       program :version, VERSION
       program :description, 'A container framework based on docker-compose'
 
+      default_command :help
+
       command :test do |c|
         c.syntax = 'yu test'
         c.description = 'Run tests for service(s)'
