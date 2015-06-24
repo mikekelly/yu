@@ -84,6 +84,7 @@ module Yu
       end
 
       global_option('-V', '--verbose', 'Verbose output') { $verbose_mode = true }
+      global_option('--no-rm', 'Do not remove containers used for running commands') { $dont_remove_containers = true }
 
       run!
     end
@@ -100,7 +101,7 @@ module Yu
       results = target_services.map do |service|
         info "Running tests for #{service}..."
         run_command(
-          "docker-compose run --rm #{service} bin/test",
+          "docker-compose run #{"--rm" if remove_containers?} #{service} bin/test",
           exit_on_failure: false,
         )
       end
@@ -130,7 +131,7 @@ module Yu
         target_service = normalise_service_name_from_dir(args.first)
         env_option = options.test ? "-e APP_ENV=test" : ""
         info "Loading #{"test" if options.test} shell for #{target_service}..."
-        execute_command("docker-compose run --rm #{env_option} #{target_service} bash")
+        execute_command("docker-compose run #{"--rm" if remove_containers?} #{env_option} #{target_service} bash")
       else
         info "One at a time please!"
         exit 1
@@ -190,7 +191,7 @@ module Yu
     def run(args, options)
       command = args.join(" ")
       env_option = options.test ? "-e APP_ENV=test" : ""
-      execute_command "docker-compose run --rm #{env_option} #{command}"
+      execute_command "docker-compose run #{"--rm" if remove_containers?} #{env_option} #{command}"
     end
 
     def service(args, options)
@@ -304,6 +305,10 @@ module Yu
 
     def verbose_mode?
       !!$verbose_mode
+    end
+
+    def remove_containers?
+      !$dont_remove_containers
     end
   end
 end
