@@ -274,7 +274,7 @@ module Yu
 
     def package_gems_for_service(service)
       info "Packaging gems for #{service}"
-      run_command("cd #{service} && bundle package --all")
+      run_command("cd #{service} && bundle package --all --no-install")
     end
 
     def gemfiled_services
