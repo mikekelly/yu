@@ -220,7 +220,9 @@ module Yu
       service_names.select { |service_name| Pathname(service_name).exist? }
     end
 
-    def copy_template_into_dir(service_name:)
+    def copy_template_into_dir(options={})
+      service_name = options.fetch(:service_name)
+
       run_command("cp -aR #{template_dir} #{service_name}")
     end
 
