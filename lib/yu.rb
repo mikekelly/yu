@@ -202,7 +202,7 @@ module Yu
       else
         service_names.each do |service_name|
           info "Generating service scaffold for #{service_name}..."
-          copy_template_into_dir(service_name: service_name)
+          copy_template_into_dir(service_name)
           render_and_remove_erb_files(service_name: service_name)
           append_partial_to_docker_compose_yml(service_name)
         end
@@ -220,7 +220,9 @@ module Yu
       service_names.select { |service_name| Pathname(service_name).exist? }
     end
 
-    def copy_template_into_dir(service_name:)
+    def copy_template_into_dir(options={})
+      service_name = options.fetch(:service_name)
+
       run_command("cp -aR #{template_dir} #{service_name}")
     end
 
