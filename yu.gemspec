@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
 
   spec.summary       = %q{A simple docker container framework}
   spec.description   = %q{Framework for managing docker containers based on docker-compose}
-  spec.homepage      = "https://github.com/mikekellly/yu"
+  spec.homepage      = "https://github.com/mikekelly/yu"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
